@@ -1,0 +1,33 @@
+name: Weekly LabLogger Scraper
+
+on:
+  schedule:
+    # Runs automatically every Sunday at 6:00 PM UTC
+    - cron: '0 18 * * 0'
+  workflow_dispatch: # Allows manual run button
+
+jobs:
+  scrape-and-post:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright requests
+          playwright install chromium
+
+      - name: Run Scraper Script
+        env:
+          LABLOGGER_EMAIL: ${{ secrets.LABLOGGER_EMAIL }}
+          LABLOGGER_PASSWORD: ${{ secrets.LABLOGGER_PASSWORD }}
+          WEB_APP_URL: ${{ secrets.WEB_APP_URL }}
+        run: python scraper.py

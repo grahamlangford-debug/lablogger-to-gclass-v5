@@ -64,25 +64,24 @@ def scrape_lablogger():
                     })
             return found
 
-        # Scrape current week
-        current_lessons = extract_lessons()
-        print(f"🔎 Found {len(current_lessons)} lessons in current week view.")
-        lessons.extend(current_lessons)
+        # Scrape current view
+        lessons.extend(extract_lessons())
 
-        # Advance to upcoming weeks (clicks Next up to 2 times)
-        for week_ahead in range(1, 3):
-            next_btn = page.query_selector("a:has-text('Next'), .next-week, button:has-text('Next'), a[title*='Next']")
-            if next_btn:
-                print(f"➡️ Navigating forward to Week +{week_ahead}...")
-                next_btn.click()
-                page.wait_for_timeout(3000)
-                next_lessons = extract_lessons()
-                print(f"🔎 Found {len(next_lessons)} lessons in Week +{week_ahead}.")
-                lessons.extend(next_lessons)
+        # Safely try clicking next week
+        for _ in range(2):
+            try:
+                next_btn = page.locator("a, button, i").filter(has_text=re.compile("next|>", re.I)).first
+                if next_btn.is_visible():
+                    next_btn.click()
+                    page.wait_for_timeout(2000)
+                    lessons.extend(extract_lessons())
+            except Exception as e:
+                print("Could not advance week further:", e)
+                break
 
         browser.close()
 
-    print(f"📦 Found {len(lessons)} total lessons across all scanned weeks. Sending to Google Apps Script...")
+    print(f"📦 Found {len(lessons)} total lessons. Sending to Google Apps Script...")
     
     response = requests.post(WEB_APP_URL, json={"lessons": lessons})
     print("📋 Response from Google Apps Script:")

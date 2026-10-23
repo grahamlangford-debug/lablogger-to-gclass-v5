@@ -21,7 +21,6 @@ def scrape_lablogger():
     
     if missing:
         print(f"❌ Error: Missing GitHub Secrets: {', '.join(missing)}")
-        print("Please verify them in Repository Settings -> Secrets and variables -> Actions.")
         sys.exit(1)
 
     lessons = []
